@@ -32,6 +32,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 var tart = require('tart');
 
+/*
+  * Return: _Object_ The tracing control object.
+    * `dispatch`: _Function_ `function () {}` Function to call in order to
+        dispatch a single event.
+    * `history`: _Array_ An array of effects that represents the history of
+        execution.
+    * `initial`: _Object_ Initial effect prior to first dispatch.
+    * `sponsor`: _Function_ `function (behavior) {}` A capability to create
+        new actors.
+*/
 module.exports.tracing = function tracing() {
     var events = [];
     var history = [];
@@ -41,6 +51,10 @@ module.exports.tracing = function tracing() {
     };
     var effect = initial;
 
+    /*
+      * Return: _Effect_ or `false`. Effect of dispatching the next `event` or
+          `false` if no events exists for dispatch.
+    */
     var tracingDispatch = function tracingDispatch() {
         if (effect === initial) {
             // mechanism for bootstrapping initial configuration state

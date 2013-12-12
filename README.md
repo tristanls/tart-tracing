@@ -63,9 +63,78 @@ console.log(util.inspect(tracing, {depth: null}));
 
 ## Documentation
 
+### Events
+
+An `event` is an abstraction around the concept of a `message` being delivered to the actor. It is a tuple of a `message`, `context`, and `cause`. When an `event` is dispatched, the actor `context` is bound to `this` parameter and the behavior is executed given the `message`. The result of processing the `message` is an `effect`.
+
+An `event` has the following attributes:
+
+  * `cause`: _Event_ _(Default: undefined)_ The `event` that caused this event to happen. Will be `undefined` if this event is result of bootstrapping and no prior events were dispatched.
+  * `context`: _Object_ Actor context the message was delivered to.
+  * `message`: _Any_ Message that was delivered.
+
+### Effects
+
+An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It has the following attributes:
+
+  * `created`: _Array_ An array of created contexts. A context is the execution context of an actor behavior (the value of _this_ when the behavior executes).
+  * `event`: _Object_ The event that is the cause of this `effect`.
+  * `exception`: _Error_ _(Default: undefined)_ If dispatching the `event` caused an exception, that exception is stored here.
+  * `previous`: _Function_ _(Default: undefined)_ `function (message) {}` If the actor changed its behavior as a result of processing a `message`, the previous behavior is referenced here. The new actor behavior is in `event.context.behavior`.
+  * `sent`: _Array_ An array of `events` that represent messages sent by the actor as a result of processing a `message`.
+
 **Public API**
 
-_TODO_
+  * [tart.tracing()](#tarttracing)
+  * [tracing.dispatch()](#tracingdispatch)
+  * [tracing.sponsor(behavior)](#tracingsponsorbehavior)
+
+### tart.tracing()
+
+  * Return: _Object_ The tracing control object.
+    * `dispatch`: _Function_ `function () {}` Function to call in order to
+        dispatch a single event.
+    * `history`: _Array_ An array of effects that represents the history of
+        execution.
+    * `initial`: _Object_ Initial effect prior to first dispatch.
+    * `sponsor`: _Function_ `function (behavior) {}` A capability to create
+        new actors.
+
+Returns the tracing control object.
+
+### tracing.dispatch()
+
+  * Return: _Effect_ or `false`. Effect of dispatching the next `event` or `false` if no events exists for dispatch.
+
+Dispatch the next `event`.
+
+```javascript
+var tart = require('tart-tracing');
+var tracing = tart.tracing();
+
+var effect = tracing.initial;
+while ((effect = tracing.dispatch()) !== false) {
+    console.dir(effect);
+}
+```
+
+### tracing.sponsor(behavior)
+
+  * `behavior`: _Function_ `function (message) {}` Actor behavior to invoke every time an actor receives a message.
+  * Return: _Function_ `function (message) {}` Actor reference in form of a capability that can be invoked to send the actor a message.
+
+Creates a new (traceable) actor and returns the actor reference in form of a capability to send that actor a message.
+
+```javascript
+var tart = require('tart-tracing');
+var tracing = tart.tracing();
+var actor = tracing.sponsor(function (message) {
+    console.log('got message', message);
+    console.log(this.self);
+    console.log(this.behavior);
+    console.log(this.sponsor); 
+});
+```
 
 ## Sources
 
