@@ -47,9 +47,17 @@ module.exports.tracing = function tracing() {
     var history = [];
     var initial = {
         created: [],
-        sent: events // mechanism for bootstrapping initial configuration state
+        sent: []
     };
     var effect = initial;
+
+    var enqueue = function enqueue(eventQueue, events) {
+		Array.prototype.push.apply(eventQueue, events);
+    };
+    
+    var dequeue = function dequeue(eventQueue) {
+        return eventQueue.shift();
+    };
 
     /*
       * Return: _Effect_ or `false`. Effect of dispatching the next `event` or
@@ -58,11 +66,9 @@ module.exports.tracing = function tracing() {
     var tracingDispatch = function tracingDispatch() {
         if (effect === initial) {
             // mechanism for bootstrapping initial configuration state
-            // cloning the event references to a new array prevents changes
-            // to the initial parameter
-            events = events.slice(); // clone the event list
+            tracing.enqueue(events, effect.sent);
         }
-        var event = events.shift();
+        var event = tracing.dequeue(events);
         if (!event) {
             return false;
         }
@@ -78,7 +84,7 @@ module.exports.tracing = function tracing() {
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
-            Array.prototype.push.apply(events, effect.sent);
+            tracing.enqueue(events, effect.sent);
         } catch (exception) {
             effect.exception = exception;
         }
@@ -111,9 +117,11 @@ module.exports.tracing = function tracing() {
         return config;
     };
 
-    return {
+    var tracing = {
         initial: initial,
         history: history,
+        enqueue: enqueue,
+        dequeue: dequeue,
         dispatch: tracingDispatch,
         sponsor: tart.pluggable({
             constructConfig: constructConfig,
@@ -121,4 +129,5 @@ module.exports.tracing = function tracing() {
             deliver: unused
         })
     };
+    return tracing;
 };
