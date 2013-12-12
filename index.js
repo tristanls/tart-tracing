@@ -86,7 +86,7 @@ module.exports.tracing = function tracing() {
         return effect;
     };
 
-    var unused = function unused(deliver) {
+    var unused = function unused() {
         throw new Error('This pluggable hook should not be called');
     };
 
