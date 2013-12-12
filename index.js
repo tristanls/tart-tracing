@@ -78,9 +78,6 @@ module.exports.tracing = function tracing() {
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
-            for (var i = 0; i < effect.sent.length; i++) {
-                effect.sent[i].cause = event;
-            }
             Array.prototype.push.apply(events, effect.sent);
         } catch (exception) {
             effect.exception = exception;
@@ -93,6 +90,7 @@ module.exports.tracing = function tracing() {
 
     var deliver = function deliver(context, message, options) {
         var event = {
+            cause: effect.event,
             message: message,
             context: context
         };
