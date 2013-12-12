@@ -48,13 +48,13 @@ actor('bar');
 var effect;
 
 console.log('tracing:');
-console.log(util.inspect(tracing, false, null));
+console.log(util.inspect(tracing, {depth: null}));
 while ((effect = tracing.dispatch()) != false) {
     console.log('effect:');
-    console.log(util.inspect(effect, false, null));
+    console.log(util.inspect(effect, {depth: null}));
 };
 console.log('tracing:');
-console.log(util.inspect(tracing, false, null));
+console.log(util.inspect(tracing, {depth: null}));
 ```
 
 ## Tests
