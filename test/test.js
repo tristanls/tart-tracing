@@ -48,7 +48,7 @@ test['tracing should return an initial state prior to any dispatch'] = function 
     test.equal(tracing.initial.sent.length, 1);
     test.strictEqual(tracing.initial.sent[0].message, actor2);
     test.strictEqual(tracing.initial.sent[0].context.self, actor);
-    test.strictEqual(tracing.initial.sent[0].sender, undefined);
+    test.strictEqual(tracing.initial.sent[0].cause, undefined);
     test.done();
 };
 
@@ -87,12 +87,12 @@ test['tracing should not change initial state after dispatching'] = function (te
     test.equal(tracing.initial.sent.length, 1);
     test.strictEqual(tracing.initial.sent[0].message, actor2);
     test.strictEqual(tracing.initial.sent[0].context.self, actor);
-    test.strictEqual(tracing.initial.sent[0].sender, undefined);
+    test.strictEqual(tracing.initial.sent[0].cause, undefined);
     test.done();
 };
 
 test['dispatch returns an effect of actor processing the message'] = function (test) {
-    test.expect(7);
+    test.expect(8);
     var tracing = tart.tracing();
 
     var createdBeh = function createdBeh(message) {};
@@ -111,7 +111,8 @@ test['dispatch returns an effect of actor processing the message'] = function (t
     test.strictEqual(effect.created[0].behavior, createdBeh);
     test.equal(effect.event.message, 'bar');
     test.equal(effect.sent[0].message, 'foo');
-    test.strictEqual(effect.sent[0].sender, actor);
+    test.strictEqual(effect.sent[0].cause.message, 'bar');
+    test.strictEqual(effect.sent[0].cause.context.self, actor);
     test.strictEqual(effect.previous, testBeh);
     test.strictEqual(effect.event.context.behavior, becomeBeh);
     test.ok(!effect.exception);
@@ -147,7 +148,7 @@ test["dispatch returns 'false' if no events to dispatch"] = function (test) {
 };
 
 test['effects of a dispatched event become part of history'] = function (test) {
-    test.expect(8);
+    test.expect(9);
     var tracing = tart.tracing();
 
     var createdBeh = function createdBeh(message) {};
@@ -168,7 +169,8 @@ test['effects of a dispatched event become part of history'] = function (test) {
     test.strictEqual(effect.created[0].behavior, createdBeh);
     test.equal(effect.event.message, 'bar');
     test.equal(effect.sent[0].message, 'foo');
-    test.strictEqual(effect.sent[0].sender, actor);
+    test.strictEqual(effect.sent[0].cause.message, 'bar');
+    test.strictEqual(effect.sent[0].cause.context.self, actor);
     test.strictEqual(effect.previous, testBeh);
     test.strictEqual(effect.event.context.behavior, becomeBeh);
     test.ok(!effect.exception);

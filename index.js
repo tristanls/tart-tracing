@@ -59,14 +59,13 @@ module.exports.tracing = function tracing() {
             sent: []
         };
         try {
-            var sender = event.context.self;
             var previous = event.context.behavior;
             event.context.behavior(event.message);
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
             for (var i = 0; i < effect.sent.length; i++) {
-                effect.sent[i].sender = sender;
+                effect.sent[i].cause = event;
             }
             Array.prototype.push.apply(events, effect.sent);
         } catch (exception) {
