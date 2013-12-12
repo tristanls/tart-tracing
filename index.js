@@ -86,21 +86,19 @@ module.exports.tracing = function tracing() {
         return effect;
     };
 
-    var dispatch = function dispatch(deliver) {/* no-op */};
-
-    var deliver = function deliver(context, message, options) {
-        var event = {
-            cause: effect.event,
-            message: message,
-            context: context
-        };
-        effect.sent.push(event);
+    var unused = function unused(deliver) {
+        throw new Error('This pluggable hook should not be called');
     };
 
     var constructConfig = function constructConfig(options) {
         var config = function create(behavior) {
             var actor = function send(message) {
-                options.dispatch(options.deliver(context, message, options));
+                var event = {
+                    cause: effect.event,
+                    message: message,
+                    context: context
+                };
+                effect.sent.push(event);
             };
             var context = {
                 self: actor,
@@ -119,8 +117,8 @@ module.exports.tracing = function tracing() {
         dispatch: tracingDispatch,
         sponsor: tart.pluggable({
             constructConfig: constructConfig,
-            dispatch: dispatch,
-            deliver: deliver
+            dispatch: unused,
+            deliver: unused
         })
     };
 };
