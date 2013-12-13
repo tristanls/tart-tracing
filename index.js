@@ -42,7 +42,9 @@ var tart = require('tart');
     * `sponsor`: _Function_ `function (behavior) {}` A capability to create
         new actors.
 */
-module.exports.tracing = function tracing() {
+module.exports.tracing = function tracing(options) {
+    options = options || {};
+
     var events = [];
     var history = [];
     var initial = {
@@ -51,11 +53,11 @@ module.exports.tracing = function tracing() {
     };
     var effect = initial;
 
-    var enqueue = function enqueue(eventQueue, events) {
-		Array.prototype.push.apply(eventQueue, events);
+    options.enqueue = options.enqueue || function enqueue(eventQueue, events) {
+        Array.prototype.push.apply(eventQueue, events);
     };
     
-    var dequeue = function dequeue(eventQueue) {
+    options.dequeue = options.dequeue || function dequeue(eventQueue) {
         return eventQueue.shift();
     };
 
@@ -66,9 +68,9 @@ module.exports.tracing = function tracing() {
     var tracingDispatch = function tracingDispatch() {
         if (effect === initial) {
             // mechanism for bootstrapping initial configuration state
-            tracing.enqueue(events, effect.sent);
+            options.enqueue(events, effect.sent);
         }
-        var event = tracing.dequeue(events);
+        var event = options.dequeue(events);
         if (!event) {
             return false;
         }
@@ -84,7 +86,7 @@ module.exports.tracing = function tracing() {
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
-            tracing.enqueue(events, effect.sent);
+            options.enqueue(events, effect.sent);
         } catch (exception) {
             effect.exception = exception;
         }
@@ -117,11 +119,9 @@ module.exports.tracing = function tracing() {
         return config;
     };
 
-    var tracing = {
+    return {
         initial: initial,
         history: history,
-        enqueue: enqueue,
-        dequeue: dequeue,
         dispatch: tracingDispatch,
         sponsor: tart.pluggable({
             constructConfig: constructConfig,
@@ -129,5 +129,4 @@ module.exports.tracing = function tracing() {
             deliver: unused
         })
     };
-    return tracing;
 };
