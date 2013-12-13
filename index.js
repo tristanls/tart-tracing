@@ -57,38 +57,44 @@ module.exports.tracing = function tracing(options) {
     };
     
     /*
-    Conditionally apply effects accumulated in `exports.effect`.
-    If there are effects to apply,
-    they are recorded in `exports.history`
-    and a new `export.effect` object is initialized.
-    As a convenience, the original value of `export.effect` is returned.
-    Note: This may or may not be the same as `export.effect` on return.
+    Conditionally apply accumulated external effects.
     */
-    var applyEffect = function applyEffect() {
-        var effect = exports.effect;
+    var applyExternalEffect = function applyExternalEffect(effect) {
         var record = false;
-        if (effect.event) {
+        if (effect.sent.length > 0) {
+            options.enqueue(events, effect.sent);
             record = true;
         }
-        if (effect.exception) {
+        if (effect.created.length > 0) {
             record = true;
-        } else {
-            if (effect.sent.length > 0) {
-                options.enqueue(events, effect.sent);
-                record = true;
-            }
-            if (effect.created.length > 0) {
-                record = true;
-            }
         }
         if (record) {
-            history.push(effect);
-            exports.effect = {
-                created: [],
-                sent: []
-            };
+            recordEffect(effect);
         }
-        return effect;
+    };
+
+    /*
+    Apply effects from executing an actor behavior.
+    */
+    var applyBehaviorEffect = function applyBehaviorEffect(effect) {
+        if (!effect.exception) {
+            if (effect.sent.length > 0) {
+                options.enqueue(events, effect.sent);
+            }
+        }
+        recordEffect(effect);
+    };
+
+    /*
+    Record `effect` in `exports.history`
+    and initialize a new `export.effect` object.
+    */
+    var recordEffect = function recordEffect(effect) {
+        history.push(effect);
+        exports.effect = {
+            created: [],
+            sent: []
+        };
     };
 
     /*
@@ -96,12 +102,12 @@ module.exports.tracing = function tracing(options) {
           `false` if no events exists for dispatch.
     */
     var tracingDispatch = function tracingDispatch() {
-        applyEffect();
-        var effect = exports.effect;
+        applyExternalEffect(exports.effect);  // WARNING: may change `exports.effect`
         var event = options.dequeue(events);
         if (!event) {
             return false;
         }
+        var effect = exports.effect;
         effect.event = event;
         try {
             var previous = event.context.behavior;
@@ -112,7 +118,8 @@ module.exports.tracing = function tracing(options) {
         } catch (exception) {
             effect.exception = exception;
         }
-        return applyEffect();
+        applyBehaviorEffect(effect);  // WARNING: will change `exports.effect`
+        return effect;
     };
 
     var unused = function unused() {
