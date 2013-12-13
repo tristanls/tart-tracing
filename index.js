@@ -42,14 +42,24 @@ var tart = require('tart');
     * `sponsor`: _Function_ `function (behavior) {}` A capability to create
         new actors.
 */
-module.exports.tracing = function tracing() {
+module.exports.tracing = function tracing(options) {
+    options = options || {};
+
     var events = [];
     var history = [];
     var initial = {
         created: [],
-        sent: events // mechanism for bootstrapping initial configuration state
+        sent: []
     };
     var effect = initial;
+
+    options.enqueue = options.enqueue || function enqueue(eventQueue, events) {
+        Array.prototype.push.apply(eventQueue, events);
+    };
+    
+    options.dequeue = options.dequeue || function dequeue(eventQueue) {
+        return eventQueue.shift();
+    };
 
     /*
       * Return: _Effect_ or `false`. Effect of dispatching the next `event` or
@@ -58,11 +68,9 @@ module.exports.tracing = function tracing() {
     var tracingDispatch = function tracingDispatch() {
         if (effect === initial) {
             // mechanism for bootstrapping initial configuration state
-            // cloning the event references to a new array prevents changes
-            // to the initial parameter
-            events = events.slice(); // clone the event list
+            options.enqueue(events, effect.sent);
         }
-        var event = events.shift();
+        var event = options.dequeue(events);
         if (!event) {
             return false;
         }
@@ -78,7 +86,7 @@ module.exports.tracing = function tracing() {
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
-            Array.prototype.push.apply(events, effect.sent);
+            options.enqueue(events, effect.sent);
         } catch (exception) {
             effect.exception = exception;
         }
