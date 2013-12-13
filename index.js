@@ -77,10 +77,8 @@ module.exports.tracing = function tracing(options) {
     Apply effects from executing an actor behavior.
     */
     var applyBehaviorEffect = function applyBehaviorEffect(effect) {
-        if (!effect.exception) {
-            if (effect.sent.length > 0) {
-                options.enqueue(events, effect.sent);
-            }
+        if (effect.sent.length > 0) {
+            options.enqueue(events, effect.sent);
         }
         recordEffect(effect);
     };
