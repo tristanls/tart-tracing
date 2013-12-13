@@ -69,7 +69,7 @@ An `event` is an abstraction around the concept of a `message` being delivered t
 
 An `event` has the following attributes:
 
-  * `cause`: _Event_ _(Default: undefined)_ The `event` that caused this event to happen. Will be `undefined` if this event is result of bootstrapping and no prior events were dispatched.
+  * `cause`: _Event_ _(Default: undefined)_ The `event` that caused this event to happen. Will be `undefined` if this event was not created in an actor behavior.
   * `context`: _Object_ Actor context the message was delivered to.
   * `message`: _Any_ Message that was delivered.
 
@@ -78,7 +78,7 @@ An `event` has the following attributes:
 An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It has the following attributes:
 
   * `created`: _Array_ An array of created contexts. A context is the execution context of an actor behavior (the value of _this_ when the behavior executes).
-  * `event`: _Object_ The event that is the cause of this `effect`.
+  * `event`: _Object_ _(Default: undefined)_ The event that is the cause of this `effect`, if any.
   * `exception`: _Error_ _(Default: undefined)_ If dispatching the `event` caused an exception, that exception is stored here.
   * `previous`: _Function_ _(Default: undefined)_ `function (message) {}` If the actor changed its behavior as a result of processing a `message`, the previous behavior is referenced here. The new actor behavior is in `event.context.behavior`.
   * `sent`: _Array_ An array of `events` that represent messages sent by the actor as a result of processing a `message`.
@@ -96,7 +96,7 @@ An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It ha
         dispatch a single event.
     * `history`: _Array_ An array of effects that represents the history of
         execution.
-    * `initial`: _Object_ Initial effect prior to first dispatch.
+    * `effect`: _Object_ Accumulated effects not yet committed to history.
     * `sponsor`: _Function_ `function (behavior) {}` A capability to create
         new actors.
 
@@ -112,7 +112,8 @@ Dispatch the next `event`.
 var tart = require('tart-tracing');
 var tracing = tart.tracing();
 
-var effect = tracing.initial;
+var effect = tracing.effect;
+console.dir(effect);
 while ((effect = tracing.dispatch()) !== false) {
     console.dir(effect);
 }
