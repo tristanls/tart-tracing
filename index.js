@@ -54,18 +54,47 @@ module.exports.tracing = function tracing(options) {
 
     var events = [];
     var history = [];
-    var initial = {
-        created: [],
-        sent: []
-    };
-    var effect = initial;
 
     options.enqueue = options.enqueue || function enqueue(eventQueue, events) {
-        Array.prototype.push.apply(eventQueue, events);
+        eventQueue.push(events.slice());  // clone event batch
     };
     
     options.dequeue = options.dequeue || function dequeue(eventQueue) {
-        return eventQueue.shift();
+        while (eventQueue.length > 0) {
+            var batch = eventQueue[0];
+            if (batch.length > 0) {
+                return batch.shift();  // return next event
+            }
+            eventQueue.shift();
+        }
+        return false;
+    };
+    
+    var applyEffect = function applyEffect() {
+        var effect = exports.effect;
+        var record = false;
+        if (effect.event) {
+            record = true;
+        }
+        if (effect.exception) {
+            record = true;
+        } else {
+            if (effect.sent.length > 0) {
+                options.enqueue(events, effect.sent);
+                record = true;
+            }
+            if (effect.created.length > 0) {
+                record = true;
+            }
+        }
+        if (record) {
+            history.push(effect);
+            exports.effect = {
+                created: [],
+                sent: []
+            };
+        }
+        return effect;
     };
 
     /*
@@ -73,32 +102,23 @@ module.exports.tracing = function tracing(options) {
           `false` if no events exists for dispatch.
     */
     var tracingDispatch = function tracingDispatch() {
-        if (effect === initial) {
-            // mechanism for bootstrapping initial configuration state
-            options.enqueue(events, effect.sent);
-        }
+        applyEffect();
+        var effect = exports.effect;
         var event = options.dequeue(events);
         if (!event) {
             return false;
         }
-
-        effect = {
-            event: event,
-            created: [],
-            sent: []
-        };
+        effect.event = event;
         try {
             var previous = event.context.behavior;
-            event.context.behavior(event.message);
+            event.context.behavior(event.message);  // execute actor behavior
             if (previous !== event.context.behavior) {
                 effect.previous = previous;
             }
-            options.enqueue(events, effect.sent);
         } catch (exception) {
             effect.exception = exception;
         }
-        history.push(effect);
-        return effect;
+        return applyEffect();
     };
 
     var unused = function unused() {
@@ -109,25 +129,28 @@ module.exports.tracing = function tracing(options) {
         var config = function create(behavior) {
             var actor = function send(message) {
                 var event = {
-                    cause: effect.event,
+                    cause: exports.effect.event,
                     message: message,
                     context: context
                 };
-                effect.sent.push(event);
+                exports.effect.sent.push(event);
             };
             var context = {
                 self: actor,
                 behavior: behavior,
                 sponsor: config
             };
-            effect.created.push(context);
+            exports.effect.created.push(context);
             return actor;
         };
         return config;
     };
 
-    return {
-        initial: initial,
+    var exports = {
+        effect: {
+            created: [],
+            sent: []
+        },
         history: history,
         dispatch: tracingDispatch,
         sponsor: tart.pluggable({
@@ -136,4 +159,5 @@ module.exports.tracing = function tracing(options) {
             deliver: unused
         })
     };
+    return exports;
 };

@@ -42,13 +42,13 @@ test['tracing should return an initial state prior to any dispatch'] = function 
     var actor2 = tracing.sponsor(function (message) {});
     actor(actor2);
 
-    test.equal(tracing.initial.created.length, 2);
-    test.strictEqual(tracing.initial.created[0].self, actor);
-    test.strictEqual(tracing.initial.created[1].self, actor2);
-    test.equal(tracing.initial.sent.length, 1);
-    test.strictEqual(tracing.initial.sent[0].message, actor2);
-    test.strictEqual(tracing.initial.sent[0].context.self, actor);
-    test.strictEqual(tracing.initial.sent[0].cause, undefined);
+    test.equal(tracing.effect.created.length, 2);
+    test.strictEqual(tracing.effect.created[0].self, actor);
+    test.strictEqual(tracing.effect.created[1].self, actor2);
+    test.equal(tracing.effect.sent.length, 1);
+    test.strictEqual(tracing.effect.sent[0].message, actor2);
+    test.strictEqual(tracing.effect.sent[0].context.self, actor);
+    test.strictEqual(tracing.effect.sent[0].cause, undefined);
     test.done();
 };
 
@@ -79,15 +79,16 @@ test['tracing should not change initial state after dispatching'] = function (te
     var actor = tracing.sponsor(function (message) {});
     var actor2 = tracing.sponsor(function (message) {});
     actor(actor2);
+    var initial = tracing.effect;
 
     tracing.dispatch();
-    test.equal(tracing.initial.created.length, 2);
-    test.strictEqual(tracing.initial.created[0].self, actor);
-    test.strictEqual(tracing.initial.created[1].self, actor2);
-    test.equal(tracing.initial.sent.length, 1);
-    test.strictEqual(tracing.initial.sent[0].message, actor2);
-    test.strictEqual(tracing.initial.sent[0].context.self, actor);
-    test.strictEqual(tracing.initial.sent[0].cause, undefined);
+    test.equal(initial.created.length, 2);
+    test.strictEqual(initial.created[0].self, actor);
+    test.strictEqual(initial.created[1].self, actor2);
+    test.equal(initial.sent.length, 1);
+    test.strictEqual(initial.sent[0].message, actor2);
+    test.strictEqual(initial.sent[0].context.self, actor);
+    test.strictEqual(initial.sent[0].cause, undefined);
     test.done();
 };
 
@@ -148,7 +149,7 @@ test["dispatch returns 'false' if no events to dispatch"] = function (test) {
 };
 
 test['effects of a dispatched event become part of history'] = function (test) {
-    test.expect(9);
+    test.expect(11);
     var tracing = tart.tracing();
 
     var createdBeh = function createdBeh(message) {};
@@ -164,8 +165,9 @@ test['effects of a dispatched event become part of history'] = function (test) {
     actor('bar');
 
     test.equal(tracing.history.length, 0);
-    tracing.dispatch();
-    var effect = tracing.history[0];
+    var effect = tracing.dispatch();
+    test.equal(tracing.history.length, 2);
+    test.strictEqual(effect, tracing.history[1]);
     test.strictEqual(effect.created[0].behavior, createdBeh);
     test.equal(effect.event.message, 'bar');
     test.equal(effect.sent[0].message, 'foo');
