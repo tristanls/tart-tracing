@@ -85,12 +85,15 @@ An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It ha
 
 **Public API**
 
-  * [tart.tracing()](#tarttracing)
+  * [tart.tracing(\[options\])](#tarttracingoptions)
   * [tracing.dispatch()](#tracingdispatch)
   * [tracing.sponsor(behavior)](#tracingsponsorbehavior)
 
-### tart.tracing()
+### tart.tracing(options)
 
+  * `options`: _Object_ _(Default: undefined)_ Optional overrides.
+    * `dequeue`: _Function_ _(Default: `function (eventQueue){}`)_ `function (eventQueue){}` Function that returns next event to be dispatched given an `eventQueue`. 
+    * `enqueue`: _Function_ _(Default: `function (eventQueue, events){}`)_ `function (eventQueue, events){}` Function that enqueues the new `events` onto the `eventQueue` in place (causing side-effects).
   * Return: _Object_ The tracing control object.
     * `dispatch`: _Function_ `function () {}` Function to call in order to
         dispatch a single event.

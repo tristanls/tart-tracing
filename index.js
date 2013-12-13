@@ -33,6 +33,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart');
 
 /*
+  * `options`: _Object_ _(Default: undefined)_ Optional overrides.
+    * `dequeue`: _Function_ _(Default: `function (eventQueue){}`)_ `function
+        (eventQueue){}` Function that returns next event to be dispatched given
+        an `eventQueue`.
+    * `enqueue`: _Function_ _(Default: `function (eventQueue, events){}`)_
+        `function (eventQueue, events){}` Function that enqueues the new `events`
+        onto the `eventQueue` in place (causing side-effects).
   * Return: _Object_ The tracing control object.
     * `dispatch`: _Function_ `function () {}` Function to call in order to
         dispatch a single event.
