@@ -56,6 +56,14 @@ module.exports.tracing = function tracing(options) {
         return eventQueue.shift();
     };
     
+    /*
+    Conditionally apply effects accumulated in `exports.effect`.
+    If there are effects to apply,
+    they are recorded in `exports.history`
+    and a new `export.effect` object is initialized.
+    As a convenience, the original value of `export.effect` is returned.
+    Note: This may or may not be the same as `export.effect` on return.
+    */
     var applyEffect = function applyEffect() {
         var effect = exports.effect;
         var record = false;
