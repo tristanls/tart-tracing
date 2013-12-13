@@ -61,11 +61,18 @@ module.exports.tracing = function tracing(options) {
     var effect = initial;
 
     options.enqueue = options.enqueue || function enqueue(eventQueue, events) {
-        Array.prototype.push.apply(eventQueue, events);
+        eventQueue.push(events.slice());  // clone event batch
     };
     
     options.dequeue = options.dequeue || function dequeue(eventQueue) {
-        return eventQueue.shift();
+        while (eventQueue.length > 0) {
+            var batch = eventQueue[0];
+            if (batch.length > 0) {
+                return batch.shift();  // return next event
+            }
+            eventQueue.shift();
+        }
+        return false;
     };
 
     /*
