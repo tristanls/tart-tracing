@@ -77,10 +77,11 @@ An `event` has the following attributes:
 
 An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It has the following attributes:
 
+  * `became`: _Function_ _(Default: undefined)_ `function (message) {}` If the actor changed its behavior as a result of processing a `message`, the new behavior it became is referenced here.
+  * `behavior`: _Function_ _(Default: undefined)_ `function (message) {}` The behavior that executed to cause this `effect`, if any.
   * `created`: _Array_ An array of created contexts. A context is the execution context of an actor behavior (the value of _this_ when the behavior executes).
   * `event`: _Object_ _(Default: undefined)_ The event that is the cause of this `effect`, if any.
   * `exception`: _Error_ _(Default: undefined)_ If dispatching the `event` caused an exception, that exception is stored here.
-  * `previous`: _Function_ _(Default: undefined)_ `function (message) {}` If the actor changed its behavior as a result of processing a `message`, the previous behavior is referenced here. The new actor behavior is in `event.context.behavior`.
   * `sent`: _Array_ An array of `events` that represent messages sent by the actor as a result of processing a `message`.
 
 **Public API**
