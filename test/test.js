@@ -178,3 +178,85 @@ test['effects of a dispatched event become part of history'] = function (test) {
     test.ok(!effect.exception);
     test.done();
 };
+
+test['both external and behavior effects are visible'] = function (test) {
+    test.expect(33);
+    var tracing = tart.tracing();
+    var effect;
+    var step = 0;  // step counter
+
+    var first = function first(message) {
+        test.equal(message, 0);
+        test.equal(step, 1);
+        ++step;
+        this.self(-1);
+        this.behavior = second;
+    };
+    var second = function second(message) {
+        test.equal(message, -1);
+        test.equal(step, 4);
+        ++step;
+        this.behavior = third;
+    };
+    var third = function third(message) {
+        test.equal(message, 2);
+        test.equal(step, 6);
+        ++step;
+        this.behavior = boom;
+    };
+    var boom = function boom(message) {
+        throw new Error('Should not be called!');
+    };
+    var actor = tracing.sponsor(first);
+    actor(0);
+
+    effect = tracing.effect;
+    test.equal(step, 0);
+    ++step;
+    test.ok(effect);
+    test.equal(effect.created.length, 1);
+    test.equal(effect.created[0].self, actor);
+    test.equal(effect.sent.length, 1);
+    test.equal(effect.sent[0].message, 0);
+
+    effect = tracing.dispatch();
+    test.equal(step, 2);
+    ++step;
+    test.ok(effect);
+    test.equal(effect.created.length, 0);
+    test.equal(effect.sent.length, 1);
+    test.equal(effect.sent[0].message, -1);
+
+    actor(2);
+    var unused = tracing.sponsor(boom);
+
+    effect = tracing.effect;
+    test.equal(step, 3);
+    ++step;
+    test.ok(effect);
+    test.equal(effect.created.length, 1);
+    test.equal(effect.created[0].self, unused);
+    test.equal(effect.sent.length, 1);
+    test.equal(effect.sent[0].message, 2);
+
+    effect = tracing.dispatch();
+    test.equal(step, 5);
+    ++step;
+    test.ok(effect);
+    test.equal(effect.created.length, 0);
+    test.equal(effect.sent.length, 0);
+
+    effect = tracing.dispatch();
+    test.equal(step, 7);
+    ++step;
+    test.ok(effect);
+    test.equal(effect.created.length, 0);
+    test.equal(effect.sent.length, 0);
+
+    effect = tracing.dispatch();
+    test.equal(step, 8);
+    ++step;
+    test.strictEqual(effect, false);
+
+    test.done();
+};
