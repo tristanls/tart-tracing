@@ -170,7 +170,7 @@ module.exports.tracing = function tracing(options) {
     options.dispatch = unused;
     options.deliver = unused;
 
-    var exports = {
+    options.tracing = {
         effect: {
             created: [],
             sent: []
@@ -180,7 +180,5 @@ module.exports.tracing = function tracing(options) {
         sponsor: tart.pluggable(options)
     };
 
-    options.tracing = exports;
-
-    return exports;
+    return options.tracing;
 };
