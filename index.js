@@ -105,8 +105,8 @@ module.exports.tracing = function tracing(options) {
     };
 
     /*
-    Record `effect` in `exports.history`
-    and initialize a new `export.effect` object.
+    Record `effect` in `history`
+    and initialize a new `options.effect` object.
     */
     var recordEffect = function recordEffect(effect) {
         history.push(effect);
@@ -174,12 +174,10 @@ module.exports.tracing = function tracing(options) {
         sent: []
     };
 
-    var exports = {
+    return {
         effect: options.effect,
         history: history,
         dispatch: tracingDispatch,
         sponsor: tart.pluggable(options)
     };
-
-    return exports;
 };
