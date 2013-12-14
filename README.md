@@ -93,6 +93,7 @@ An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It ha
 ### tart.tracing(options)
 
   * `options`: _Object_ _(Default: undefined)_ Optional overrides.  WARNING: Implementation of `enqueue` and `dequeue` are tightly coupled and should be overridden together.
+    * `constructConfig`: _Function_ _(Default: `function (options) {}`)_ `function (options) {}` Configuration creation function that is given `options`. It should return a capability `function (behavior) {}` to create new actors.
     * `enqueue`: _Function_ `function (eventQueue, events){}` Function that enqueues the new `events` onto the `eventQueue` in place, causing side-effects _(Example: `function (eventQueue, events){ Array.prototype.push.apply(eventQueue, events); }`)_.
     * `dequeue`: _Function_ `function (eventQueue){}` Function that returns next event to be dispatched given an `eventQueue` _(Example: `function (eventQueue){ return eventQueue.shift(); }`)_.
   * Return: _Object_ The tracing control object.
