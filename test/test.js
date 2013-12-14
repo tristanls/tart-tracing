@@ -182,30 +182,30 @@ test['effects of a dispatched event become part of history'] = function (test) {
 test['both external and behavior effects are visible'] = function (test) {
     test.expect(33);
     var tracing = tart.tracing();
-	var effect;
-	var step = 0;  // step counter
+    var effect;
+    var step = 0;  // step counter
 
     var first = function first(message) {
-    	test.equal(message, 0);
-		test.equal(step, 1);
-		++step;
-		this.self(-1);
-		this.behavior = second;
+        test.equal(message, 0);
+        test.equal(step, 1);
+        ++step;
+        this.self(-1);
+        this.behavior = second;
     };
     var second = function second(message) {
-    	test.equal(message, -1);
-		test.equal(step, 4);
-		++step;
-		this.behavior = third;
+        test.equal(message, -1);
+        test.equal(step, 4);
+        ++step;
+        this.behavior = third;
     };
     var third = function third(message) {
-    	test.equal(message, 2);
-		test.equal(step, 6);
-		++step;
-		this.behavior = boom;
+        test.equal(message, 2);
+        test.equal(step, 6);
+        ++step;
+        this.behavior = boom;
     };
     var boom = function boom(message) {
-    	throw new Error('Should not be called!');
+        throw new Error('Should not be called!');
     };
     var actor = tracing.sponsor(first);
     actor(0);
