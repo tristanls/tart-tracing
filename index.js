@@ -33,19 +33,22 @@ OTHER DEALINGS IN THE SOFTWARE.
 var tart = require('tart');
 
 /*
-  * `options`: _Object_ _(Default: undefined)_ Optional overrides.
-    * `dequeue`: _Function_ _(Default: `function (eventQueue){}`)_ `function
-        (eventQueue){}` Function that returns next event to be dispatched given
-        an `eventQueue`.
-    * `enqueue`: _Function_ _(Default: `function (eventQueue, events){}`)_
-        `function (eventQueue, events){}` Function that enqueues the new `events`
-        onto the `eventQueue` in place (causing side-effects).
+  * `options`: _Object_ _(Default: undefined)_ Optional overrides.  WARNING:
+      Implementation of `enqueue` and `dequeue` are tightly coupled and should
+      be overridden together.
+    * `enqueue`: _Function_ `function (eventQueue, events){}` Function that
+        enqueues the new `events` onto the `eventQueue` in place, causing
+        side-effects _(Example: `function (eventQueue, events){
+        Array.prototype.push.apply(eventQueue, events); }`)_.
+    * `dequeue`: _Function_ `function (eventQueue){}` Function that returns next
+        event to be dispatched given an `eventQueue`
+        _(Example: `function (eventQueue){ return eventQueue.shift(); }`)_.
   * Return: _Object_ The tracing control object.
     * `dispatch`: _Function_ `function () {}` Function to call in order to
         dispatch a single event.
     * `history`: _Array_ An array of effects that represents the history of
         execution.
-    * `initial`: _Object_ Initial effect prior to first dispatch.
+    * `effect`: _Object_ Accumulated effects not yet committed to history.
     * `sponsor`: _Function_ `function (behavior) {}` A capability to create
         new actors.
 */
