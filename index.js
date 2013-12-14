@@ -36,6 +36,10 @@ var tart = require('tart');
   * `options`: _Object_ _(Default: undefined)_ Optional overrides.  WARNING:
       Implementation of `enqueue` and `dequeue` are tightly coupled and should
       be overridden together.
+    * `constructConfig`: _Function_ _(Default: `function (options) {}`)_
+        `function (options) {}` Configuration creation function that
+        is given `options`. It should return a capability `function (behavior) {}`
+        to create new actors.
     * `enqueue`: _Function_ `function (eventQueue, events){}` Function that
         enqueues the new `events` onto the `eventQueue` in place, causing
         side-effects _(Example: `function (eventQueue, events){
@@ -106,7 +110,7 @@ module.exports.tracing = function tracing(options) {
     */
     var recordEffect = function recordEffect(effect) {
         history.push(effect);
-        exports.effect = {
+        options.effect = {
             created: [],
             sent: []
         };
@@ -117,12 +121,12 @@ module.exports.tracing = function tracing(options) {
           `false` if no events exists for dispatch.
     */
     var tracingDispatch = function tracingDispatch() {
-        applyExternalEffect(exports.effect);  // WARNING: may change `exports.effect`
+        applyExternalEffect(options.effect);  // WARNING: may change `options.effect`
         var event = options.dequeue(events);
         if (!event) {
             return false;
         }
-        var effect = exports.effect;
+        var effect = options.effect;
         effect.event = event;
         try {
             var behavior = event.context.behavior;
@@ -134,7 +138,7 @@ module.exports.tracing = function tracing(options) {
         } catch (exception) {
             effect.exception = exception;
         }
-        applyBehaviorEffect(effect);  // WARNING: will change `exports.effect`
+        applyBehaviorEffect(effect);  // WARNING: will change `options.effect`
         return effect;
     };
 
@@ -142,39 +146,40 @@ module.exports.tracing = function tracing(options) {
         throw new Error('This pluggable hook should not be called');
     };
 
-    var constructConfig = function constructConfig(options) {
+    options.constructConfig = options.constructConfig || function constructConfig(options) {
         var config = function create(behavior) {
             var actor = function send(message) {
                 var event = {
-                    cause: exports.effect.event,
+                    cause: options.effect.event,
                     message: message,
                     context: context
                 };
-                exports.effect.sent.push(event);
+                options.effect.sent.push(event);
             };
             var context = {
                 self: actor,
                 behavior: behavior,
                 sponsor: config
             };
-            exports.effect.created.push(context);
+            options.effect.created.push(context);
             return actor;
         };
         return config;
     };
 
+    options.dispatch = unused;
+    options.deliver = unused;
+    options.effect = {
+        created: [],
+        sent: []
+    };
+
     var exports = {
-        effect: {
-            created: [],
-            sent: []
-        },
+        effect: options.effect,
         history: history,
         dispatch: tracingDispatch,
-        sponsor: tart.pluggable({
-            constructConfig: constructConfig,
-            dispatch: unused,
-            deliver: unused
-        })
+        sponsor: tart.pluggable(options)
     };
+
     return exports;
 };
