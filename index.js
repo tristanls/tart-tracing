@@ -125,10 +125,11 @@ module.exports.tracing = function tracing(options) {
         var effect = exports.effect;
         effect.event = event;
         try {
-            var previous = event.context.behavior;
+            var behavior = event.context.behavior;
+            effect.behavior = behavior;
             event.context.behavior(event.message);  // execute actor behavior
-            if (previous !== event.context.behavior) {
-                effect.previous = previous;
+            if (behavior !== event.context.behavior) {
+                effect.became = event.context.behavior;
             }
         } catch (exception) {
             effect.exception = exception;
