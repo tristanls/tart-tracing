@@ -47,18 +47,18 @@ test['tracing allows for alternate constructConfig mechanism'] = function (test)
             test.strictEqual(behavior, newBeh);
             var actor = function send(message) {
                 var event = {
-                    cause: options.effect.event,
+                    cause: options.tracing.effect.event,
                     message: message,
                     context: context
                 };
-                options.effect.sent.push(event);
+                options.tracing.effect.sent.push(event);
             };
             var context = {
                 self: actor,
                 behavior: behavior,
                 sponsor: config
             };
-            options.effect.created.push(context);
+            options.tracing.effect.created.push(context);
             return actor;
         };
         return config;

@@ -106,11 +106,11 @@ module.exports.tracing = function tracing(options) {
 
     /*
     Record `effect` in `history`
-    and initialize a new `options.effect` object.
+    and initialize a new `options.tracing.effect` object.
     */
     var recordEffect = function recordEffect(effect) {
         history.push(effect);
-        options.effect = {
+        options.tracing.effect = {
             created: [],
             sent: []
         };
@@ -121,12 +121,12 @@ module.exports.tracing = function tracing(options) {
           `false` if no events exists for dispatch.
     */
     var tracingDispatch = function tracingDispatch() {
-        applyExternalEffect(options.effect);  // WARNING: may change `options.effect`
+        applyExternalEffect(options.tracing.effect);  // WARNING: may change `options.tracing.effect`
         var event = options.dequeue(events);
         if (!event) {
             return false;
         }
-        var effect = options.effect;
+        var effect = options.tracing.effect;
         effect.event = event;
         try {
             var behavior = event.context.behavior;
@@ -138,7 +138,7 @@ module.exports.tracing = function tracing(options) {
         } catch (exception) {
             effect.exception = exception;
         }
-        applyBehaviorEffect(effect);  // WARNING: will change `options.effect`
+        applyBehaviorEffect(effect);  // WARNING: will change `options.tracing.effect`
         return effect;
     };
 
@@ -150,18 +150,18 @@ module.exports.tracing = function tracing(options) {
         var config = function create(behavior) {
             var actor = function send(message) {
                 var event = {
-                    cause: options.effect.event,
+                    cause: options.tracing.effect.event,
                     message: message,
                     context: context
                 };
-                options.effect.sent.push(event);
+                options.tracing.effect.sent.push(event);
             };
             var context = {
                 self: actor,
                 behavior: behavior,
                 sponsor: config
             };
-            options.effect.created.push(context);
+            options.tracing.effect.created.push(context);
             return actor;
         };
         return config;
@@ -169,15 +169,18 @@ module.exports.tracing = function tracing(options) {
 
     options.dispatch = unused;
     options.deliver = unused;
-    options.effect = {
-        created: [],
-        sent: []
-    };
 
-    return {
-        effect: options.effect,
+    var exports = {
+        effect: {
+            created: [],
+            sent: []
+        },
         history: history,
         dispatch: tracingDispatch,
         sponsor: tart.pluggable(options)
     };
+
+    options.tracing = exports;
+
+    return exports;
 };
