@@ -1,6 +1,6 @@
 {
   "name": "tart-tracing",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Tart tracing",
   "scripts": {
     "inject-examples": "node scripts/injectExamples.js",
