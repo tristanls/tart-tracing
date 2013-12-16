@@ -142,6 +142,17 @@ module.exports.tracing = function tracing(options) {
         return effect;
     };
 
+    /*
+      * `control`: _Object_ _(Default: `undefined`)_ Optional overrides.
+        * `count`: _Number_ _(Default: `undefined`)_ Maximum number of events to
+            dispatch, or unlimited if `undefined`.
+        * `fail`: _Function_ `function (exception) {}` Function called to report
+            exceptions thrown from an actor behavior. Exceptions are thrown by
+            default. _(Example: `function (exception) {}` ignores exceptions)_.
+        * `log`: _Function_ `function (effect) {}` Function called with every
+            effect resulting from an event dispatch.
+      * Return: _Boolean_ `true` if event queue is exhausted, `false` otherwise.
+    */
     var eventLoop = function eventLoop(control) {
         control = control || {};
         control.log = control.log || function log(effect) {
