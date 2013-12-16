@@ -186,79 +186,78 @@ test['both external and behavior effects are visible'] = function (test) {
     test.expect(33);
     var tracing = tart.tracing();
     var effect;
-    var step = 0;  // step counter
+    var step = 'initial';  // step tracker
 
     var first = function first(message) {
-        test.equal(message, 0);
-        test.equal(step, 1);
-        ++step;
-        this.self(-1);
+        test.equal(message, 'message to first beh');
+        test.equal(step, 'inside first behavior');
+        step = 'after first behavior';
+        this.self('message to second beh');
         this.behavior = second;
     };
     var second = function second(message) {
-        test.equal(message, -1);
-        test.equal(step, 4);
-        ++step;
+        test.equal(message, 'message to second beh');
+        test.equal(step, 'inside second behavior');
+        step = 'after second behavior';
         this.behavior = third;
     };
     var third = function third(message) {
-        test.equal(message, 2);
-        test.equal(step, 6);
-        ++step;
+        test.equal(message, 'message to third beh');
+        test.equal(step, 'inside third behavior');
+        step = 'after third behavior';
         this.behavior = boom;
     };
     var boom = function boom(message) {
         throw new Error('Should not be called!');
     };
     var actor = tracing.sponsor(first);
-    actor(0);
+    actor('message to first beh');
 
     effect = tracing.effect;
-    test.equal(step, 0);
-    ++step;
+    test.equal(step, 'initial');
+    step = 'inside first behavior';
     test.ok(effect);
     test.equal(effect.created.length, 1);
     test.equal(effect.created[0].self, actor);
     test.equal(effect.sent.length, 1);
-    test.equal(effect.sent[0].message, 0);
+    test.equal(effect.sent[0].message, 'message to first beh');
 
     effect = tracing.dispatch();
-    test.equal(step, 2);
-    ++step;
+    test.equal(step, 'after first behavior');
+    step = 'before second behavior';
     test.ok(effect);
     test.equal(effect.created.length, 0);
     test.equal(effect.sent.length, 1);
-    test.equal(effect.sent[0].message, -1);
+    test.equal(effect.sent[0].message, 'message to second beh');
 
-    actor(2);
+    actor('message to third beh');
     var unused = tracing.sponsor(boom);
 
     effect = tracing.effect;
-    test.equal(step, 3);
-    ++step;
+    test.equal(step, 'before second behavior');
+    step = 'inside second behavior';
     test.ok(effect);
     test.equal(effect.created.length, 1);
     test.equal(effect.created[0].self, unused);
     test.equal(effect.sent.length, 1);
-    test.equal(effect.sent[0].message, 2);
+    test.equal(effect.sent[0].message, 'message to third beh');
 
     effect = tracing.dispatch();
-    test.equal(step, 5);
-    ++step;
+    test.equal(step, 'after second behavior');
+    step = 'inside third behavior';
     test.ok(effect);
     test.equal(effect.created.length, 0);
     test.equal(effect.sent.length, 0);
 
     effect = tracing.dispatch();
-    test.equal(step, 7);
-    ++step;
+    test.equal(step, 'after third behavior');
+    step = 'not in behavior';
     test.ok(effect);
     test.equal(effect.created.length, 0);
     test.equal(effect.sent.length, 0);
 
     effect = tracing.dispatch();
-    test.equal(step, 8);
-    ++step;
+    test.equal(step, 'not in behavior');
     test.strictEqual(effect, false);
 
     test.done();
