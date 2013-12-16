@@ -142,6 +142,38 @@ module.exports.tracing = function tracing(options) {
         return effect;
     };
 
+    /*
+      * `control`: _Object_ _(Default: `undefined`)_ Optional overrides.
+        * `count`: _Number_ _(Default: `undefined`)_ Maximum number of events to
+            dispatch, or unlimited if `undefined`.
+        * `fail`: _Function_ `function (exception) {}` Function called to report
+            exceptions thrown from an actor behavior. Exceptions are thrown by
+            default. _(Example: `function (exception) {}` ignores exceptions)_.
+        * `log`: _Function_ `function (effect) {}` Function called with every
+            effect resulting from an event dispatch.
+      * Return: _Boolean_ `true` if event queue is exhausted, `false` otherwise.
+    */
+    var eventLoop = function eventLoop(control) {
+        control = control || {};
+        control.log = control.log || function log(effect) {
+            /* no logging */
+        };
+        control.fail = control.fail || function fail(exception) {
+            throw exception;
+        };
+        while ((control.count === undefined) || (--control.count >= 0)) {
+            var effect = options.tracing.dispatch();
+            control.log(effect);  // log event
+            if (effect === false) {
+                return true;  // event queue exhausted
+            }
+            if (effect.exception) {
+                control.fail(effect.exception);  // report exception
+            }
+        }
+        return false;  // limit reached, events may remain
+    }
+
     var unused = function unused() {
         throw new Error('This pluggable hook should not be called');
     };
@@ -177,6 +209,7 @@ module.exports.tracing = function tracing(options) {
         },
         history: history,
         dispatch: tracingDispatch,
+        eventLoop: eventLoop,
         sponsor: tart.pluggable(options)
     };
 
