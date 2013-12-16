@@ -142,6 +142,27 @@ module.exports.tracing = function tracing(options) {
         return effect;
     };
 
+    var eventLoop = function eventLoop(control) {
+        control = control || {};
+        control.log = control.log || function log(effect) {
+            /* no logging */
+        };
+        control.fail = control.fail || function fail(exception) {
+            throw exception;
+        };
+        while ((control.count === undefined) || (--control.count >= 0)) {
+            var effect = options.tracing.dispatch();
+            control.log(effect);  // log event
+            if (effect === false) {
+                return true;  // event queue exhausted
+            }
+            if (effect.exception) {
+                control.fail(effect.exception);  // report exception
+            }
+        }
+        return false;  // limit reached, events may remain
+    }
+
     var unused = function unused() {
         throw new Error('This pluggable hook should not be called');
     };
@@ -177,6 +198,7 @@ module.exports.tracing = function tracing(options) {
         },
         history: history,
         dispatch: tracingDispatch,
+        eventLoop: eventLoop,
         sponsor: tart.pluggable(options)
     };
 
