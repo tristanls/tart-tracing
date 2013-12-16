@@ -88,6 +88,7 @@ An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It ha
 
   * [tart.tracing(\[options\])](#tarttracingoptions)
   * [tracing.dispatch()](#tracingdispatch)
+  * [tracing.eventLoop(\[control\])](#tracingeventloopcontrol)
   * [tracing.sponsor(behavior)](#tracingsponsorbehavior)
 
 ### tart.tracing(options)
@@ -122,6 +123,35 @@ console.dir(effect);
 while ((effect = tracing.dispatch()) !== false) {
     console.dir(effect);
 }
+```
+
+### tracing.eventLoop([control])
+
+  * `control`: _Object_ _(Default: `undefined`)_ Optional overrides.
+    * `count`: _Number_ _(Default: `undefined`)_ Maximum number of events to dispatch, or unlimited if `undefined`.
+    * `fail`: _Function_ `function (exception) {}` Function called to report exceptions thrown from an actor behavior. Exceptions are thrown by default. _(Example: `function (exception) {/*ignore exceptions*/}`)_.
+    * `log`: _Function_ `function (effect) {}` Function called with every effect resulting from an event dispatch.
+  * Return: _Boolean_ `true` if event queue is exhausted, `false` otherwise.
+
+Dispatch events in a manner provided by `control`. 
+
+By default, calling `tracing.eventLoop()` with no parameters dispatches all events in the event queue.
+
+```javascript
+var tart = require('tart-tracing');
+var tracing = tart.tracing();
+
+var actor = tracing.sponsor(function (message) {
+    console.log(message); 
+});
+actor('foo');
+actor('bar');
+actor('baz');
+
+tracing.eventLoop();
+// foo
+// bar
+// baz
 ```
 
 ### tracing.sponsor(behavior)
