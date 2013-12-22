@@ -9,10 +9,10 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "nodeunit": "0.8.1"
+    "nodeunit": "0.8.2"
   },
   "dependencies": {
-    "tart": "0.1.4"
+    "tart": "0.1.5"
   },
   "repository": {
     "type": "git",
