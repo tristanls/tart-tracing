@@ -98,8 +98,10 @@ An `effect` is an _Object_ that is the _effect_ of dispatching an `event`. It ha
     * `enqueue`: _Function_ `function (eventQueue, events){}` Function that enqueues the new `events` onto the `eventQueue` in place, causing side-effects _(Example: `function (eventQueue, events){ Array.prototype.push.apply(eventQueue, events); }`)_.
     * `dequeue`: _Function_ `function (eventQueue){}` Function that returns next event to be dispatched given an `eventQueue` _(Example: `function (eventQueue){ return eventQueue.shift(); }`)_.
   * Return: _Object_ The tracing control object.
-    * `dispatch`: _Function_ `function () {}` Function to call in order to
-        dispatch a single event.
+    * `dispatch`: _Function_ `function () {}` 
+        Function to call in order to dispatch a single event.
+    * `eventLoop`: _Function_ `function ([control]) {}` 
+        Function to call in order to dispatch multiple events.
     * `history`: _Array_ An array of effects that represents the history of
         execution.
     * `effect`: _Object_ Accumulated effects not yet committed to history.
