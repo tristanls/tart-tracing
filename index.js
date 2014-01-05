@@ -161,7 +161,8 @@ module.exports.tracing = function tracing(options) {
         control.fail = control.fail || function fail(exception) {
             throw exception;
         };
-        while ((control.count === undefined) || (--control.count >= 0)) {
+        var count = control.count;
+        while ((count === undefined) || (--count >= 0)) {
             var effect = options.tracing.dispatch();
             control.log(effect);  // log event
             if (effect === false) {
