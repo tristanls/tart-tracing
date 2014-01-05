@@ -95,7 +95,7 @@ test["eventLoop({count: 1}) dispatches single events and returns 'true' when emp
     two(true);
     three(true);
 
-	var options = { count: 1 };
+    var options = { count: 1 };
 
     test.strictEqual(false, controls.eventLoop(options));
     test.strictEqual('one', step);
@@ -105,6 +105,34 @@ test["eventLoop({count: 1}) dispatches single events and returns 'true' when emp
 
     test.strictEqual(false, controls.eventLoop(options));
     test.strictEqual('three', step);
+
+    test.strictEqual(true, controls.eventLoop(options));
+    test.done();
+};
+
+test["eventLoop should not mutate options"] = function (test) {
+    test.expect(10);
+    var controls = tart.tracing();
+
+    var step = 0;
+    var actor = controls.sponsor(function (message) {
+        test.ok(message);
+        step = message;
+    });
+    
+    actor(1);
+    actor(2);
+
+    var options = { count: 1 };
+    test.strictEqual(1, options.count);
+
+    test.strictEqual(false, controls.eventLoop(options));
+    test.strictEqual(1, step);
+    test.strictEqual(1, options.count);
+
+    test.strictEqual(false, controls.eventLoop(options));
+    test.strictEqual(2, step);
+    test.strictEqual(1, options.count);
 
     test.strictEqual(true, controls.eventLoop(options));
     test.done();
