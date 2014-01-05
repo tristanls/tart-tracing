@@ -73,6 +73,41 @@ test["eventLoop dispatches specified number of events and returns 'false' if not
     test.done();
 };
 
+test["eventLoop({count: 1}) dispatches single events and returns 'true' when empty"] = function (test) {
+    test.expect(10);
+    var controls = tart.tracing();
+
+    var step = null;
+    var one = controls.sponsor(function (message) {
+        test.ok(message);
+        step = 'one';
+    });
+    var two = controls.sponsor(function (message) {
+        test.ok(message);
+        step = 'two';
+    });
+    var three = controls.sponsor(function (message) {
+        test.ok(message);
+        step = 'three';
+    });
+    
+    one(true);
+    two(true);
+    three(true);
+
+    test.strictEqual(false, controls.eventLoop({count: 1}));
+    test.strictEqual('one', step);
+
+    test.strictEqual(false, controls.eventLoop({count: 1}));
+    test.strictEqual('two', step);
+
+    test.strictEqual(false, controls.eventLoop({count: 1}));
+    test.strictEqual('three', step);
+
+    test.strictEqual(true, controls.eventLoop({count: 1}));
+    test.done();
+};
+
 test["eventLoop throw exception and pause by default if actor behavior throws an exception"] = function (test) {
     test.expect(5);
     var controls = tart.tracing();
