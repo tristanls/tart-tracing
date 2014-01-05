@@ -95,16 +95,18 @@ test["eventLoop({count: 1}) dispatches single events and returns 'true' when emp
     two(true);
     three(true);
 
-    test.strictEqual(false, controls.eventLoop({count: 1}));
+	var options = { count: 1 };
+
+    test.strictEqual(false, controls.eventLoop(options));
     test.strictEqual('one', step);
 
-    test.strictEqual(false, controls.eventLoop({count: 1}));
+    test.strictEqual(false, controls.eventLoop(options));
     test.strictEqual('two', step);
 
-    test.strictEqual(false, controls.eventLoop({count: 1}));
+    test.strictEqual(false, controls.eventLoop(options));
     test.strictEqual('three', step);
 
-    test.strictEqual(true, controls.eventLoop({count: 1}));
+    test.strictEqual(true, controls.eventLoop(options));
     test.done();
 };
 
