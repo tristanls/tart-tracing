@@ -142,6 +142,13 @@ module.exports.tracing = function tracing(options) {
         return effect;
     };
 
+    var defaultLog = function log(effect) {
+        /* no logging */
+    };
+    var defaultFail = function fail(exception) {
+        throw exception;
+    };
+
     /*
       * `control`: _Object_ _(Default: `undefined`)_ Optional overrides.
         * `count`: _Number_ _(Default: `undefined`)_ Maximum number of events to
@@ -155,12 +162,8 @@ module.exports.tracing = function tracing(options) {
     */
     var eventLoop = function eventLoop(control) {
         control = control || {};
-        control.log = control.log || function log(effect) {
-            /* no logging */
-        };
-        control.fail = control.fail || function fail(exception) {
-            throw exception;
-        };
+        control.log = control.log || defaultLog;
+        control.fail = control.fail || defaultFail;
         var count = control.count;
         while ((count === undefined) || (--count >= 0)) {
             var effect = options.tracing.dispatch();
