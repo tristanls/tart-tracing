@@ -1,6 +1,6 @@
 {
   "name": "tart-tracing",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Tart tracing",
   "scripts": {
     "inject-examples": "node scripts/injectExamples.js",
@@ -12,7 +12,7 @@
     "nodeunit": "0.8.x"
   },
   "dependencies": {
-    "tart": "0.2.x"
+    "tart": "0.3.x"
   },
   "repository": {
     "type": "git",

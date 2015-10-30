@@ -71,3 +71,18 @@ test['tracing allows for alternate constructConfig mechanism'] = function (test)
     while (controls.dispatch() !== false) // run to completion
         ;
 };
+
+test['tracing default actor annotation is simple serial number'] = function (test) {
+    test.expect(2);
+
+    var sponsor = tart.tracing().sponsor;
+
+    var noop = function () {};
+    var foo = sponsor(noop);
+    var bar = sponsor(noop);
+
+    test.equal('@0', foo.toString());
+    test.equal('@1', bar.inspect());
+
+    test.done();
+};
