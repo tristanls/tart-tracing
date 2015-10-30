@@ -36,6 +36,7 @@ var tart = require('tart');
   * `options`: _Object_ _(Default: undefined)_ Optional overrides.  WARNING:
       Implementation of `enqueue` and `dequeue` are tightly coupled and should
       be overridden together.
+    * `annotate`: _Function_ `function (actor) {}` An optional method to wrap/modify newly-created actors.  
     * `constructConfig`: _Function_ _(Default: `function (options) {}`)_
         `function (options) {}` Configuration creation function that
         is given `options`. It should return a capability `function (behavior) {}`
@@ -192,6 +193,7 @@ module.exports.tracing = function tracing(options) {
                 };
                 options.tracing.effect.sent.push(event);
             };
+            actor = options.annotate(actor);
             var context = {
                 self: actor,
                 behavior: behavior,
@@ -202,6 +204,16 @@ module.exports.tracing = function tracing(options) {
         };
         return config;
     };
+
+    options.annotate = options.annotate || (function (n) {
+        return function annotate(actor) {
+            var id = '@' + n++;
+            actor.toString = actor.inspect = function () {
+                return id;
+            };
+            return actor;
+        };
+    })(0);
 
     options.dispatch = unused;
     options.deliver = unused;
